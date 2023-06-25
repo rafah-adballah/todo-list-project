@@ -1,5 +1,5 @@
 import "./App.css";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -9,6 +9,10 @@ function App() {
     { id: 1, des: "make coffe", isCompleted: false },
     { id: 2, des: "make tea", isCompleted: true },
   ]);
+
+  const draggingItem = useRef();
+  const dragOverItem = useRef();
+
   const handleAdd = () => {
     const newTaskes = [...taskes];
     const nTaske = {
@@ -18,6 +22,7 @@ function App() {
     };
     newTaskes.push(nTaske);
     setTaskes(newTaskes);
+    setTodoAdd("");
   };
 
   const handleCheck = (task) => {
@@ -42,6 +47,25 @@ function App() {
     };
     const index = taskes.findIndex((t) => t.id === task.id);
     newTaskes[index] = ntask;
+    setTaskes(newTaskes);
+  };
+
+  const handleDragStart = (e, index) => {
+    draggingItem.current = index;
+  };
+
+  const handleDragEnter = (e, index) => {
+    dragOverItem.current = index;
+  };
+
+  const handleDragEnd = () => {
+    const newTaskes = [...taskes];
+    const draggingItemContent = newTaskes[draggingItem.current];
+    newTaskes.splice(draggingItem.current, 1);
+    newTaskes.splice(dragOverItem.current, 0, draggingItemContent);
+
+    draggingItem.current = null;
+    dragOverItem.current = null;
     setTaskes(newTaskes);
   };
 
@@ -73,57 +97,58 @@ function App() {
         </div>
       </div>
       {/* table */}
-      <table class="table table-borderless">
-        <thead>
-          <tr>
-            <th scope="col">Id</th>
-            <th scope="col">Descrption</th>
-            <th scope="col">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {taskes.map((task) => {
-            return (
-              <>
-                <tr>
-                  <th scope="row">{task.id}</th>
-                  <td>
-                    <div className="mb-3 form-check ">
-                      <input
-                        checked={task.isCompleted}
-                        type="checkbox"
-                        className="form-check-input"
-                        id="exampleCheck1"
-                        onClick={() => handleCheck(task)}
-                      />
-                      <input
-                        className={
-                          task.isCompleted
-                            ? " form-check-lable border-0 text-decoration-line-through"
-                            : " form-check-lable border-0"
-                        }
-                        value={task.des}
-                        htmlFor="exampleCheck1"
-                        onChange={(e) => handleEdit(task, e)}
-                      />
-                    </div>
-                  </td>
-                  <td>
-                    <button
-                      type="button"
-                      class="btn btn-danger"
-                      onClick={() => handleDelete(task)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              </>
-            );
-          })}
-        </tbody>
-      </table>
 
+      {taskes && (
+        <table class="table table-borderless mt-3">
+          <tbody>
+            {taskes.map((task, index) => {
+              return (
+                <>
+                  <tr
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, index)}
+                    onDragEnter={(e) => handleDragEnter(e, index)}
+                    onDragEnd={handleDragEnd}
+                    onDragOver={(e) => e.preventDefault()}
+                  >
+                    <th scope="row">{task.id}</th>
+                    <td>
+                      <div className="mb-3 form-check ">
+                        <input
+                          checked={task.isCompleted}
+                          type="checkbox"
+                          className="form-check-input"
+                          id="exampleCheck1"
+                          onClick={() => handleCheck(task)}
+                        />
+                        <input
+                          className={
+                            task.isCompleted
+                              ? " form-check-lable border-0 text-decoration-line-through"
+                              : " form-check-lable border-0"
+                          }
+                          value={task.des}
+                          htmlFor="exampleCheck1"
+                          onChange={(e) => handleEdit(task, e)}
+                        />
+                      </div>
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        class="btn btn-danger"
+                        onClick={() => handleDelete(task)}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                </>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
       <ToastContainer />
     </div>
   );
