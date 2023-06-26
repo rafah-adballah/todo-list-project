@@ -1,14 +1,18 @@
 import "./App.css";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Navbar from "./components/Navbar";
 
 function App() {
   const [todoAdd, setTodoAdd] = useState("");
   const [taskes, setTaskes] = useState([
     { id: 1, des: "make coffe", isCompleted: false },
-    { id: 2, des: "make tea", isCompleted: true },
+    { id: 2, des: "do tea", isCompleted: false },
+    { id: 3, des: "make neskafe", isCompleted: false },
   ]);
+
+  const [inputFilter, setInputFilter] = useState([]);
 
   const draggingItem = useRef();
   const dragOverItem = useRef();
@@ -50,107 +54,119 @@ function App() {
     setTaskes(newTaskes);
   };
 
-  const handleDragStart = (e, index) => {
+  const handleDragStart = (index) => {
     draggingItem.current = index;
   };
 
-  const handleDragEnter = (e, index) => {
+  const handleDragEnter = (index) => {
     dragOverItem.current = index;
   };
 
   const handleDragEnd = () => {
-    const newTaskes = [...taskes];
+    const newTaskes = [...inputFilter];
     const draggingItemContent = newTaskes[draggingItem.current];
     newTaskes.splice(draggingItem.current, 1);
     newTaskes.splice(dragOverItem.current, 0, draggingItemContent);
 
     draggingItem.current = null;
     dragOverItem.current = null;
-    setTaskes(newTaskes);
+    setInputFilter(newTaskes);
   };
 
-  return (
-    <div className="container mt-5">
-      <h1 className="text-center">Todo List Tasks</h1>
-      <div className="row">
-        <div className="col-10">
-          <input
-            className="form-control me-2"
-            type="search"
-            value={todoAdd}
-            placeholder="creat todo task"
-            onChange={(e) => setTodoAdd(e.target.value)}
-          />
-        </div>
-        <div className="col-2">
-          <button
-            className={
-              todoAdd !== ""
-                ? "btn btn-outline-success"
-                : "btn btn-outline-success disabled"
-            }
-            type="submit"
-            onClick={handleAdd}
-          >
-            Add
-          </button>
-        </div>
-      </div>
-      {/* table */}
+  useEffect(() => {
+    setInputFilter(taskes);
+  }, []);
 
-      {taskes && (
-        <table class="table table-borderless mt-3">
-          <tbody>
-            {taskes.map((task, index) => {
-              return (
-                <>
-                  <tr
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, index)}
-                    onDragEnter={(e) => handleDragEnter(e, index)}
-                    onDragEnd={handleDragEnd}
-                    onDragOver={(e) => e.preventDefault()}
-                  >
-                    <th scope="row">{task.id}</th>
-                    <td>
-                      <div className="mb-3 form-check ">
-                        <input
-                          checked={task.isCompleted}
-                          type="checkbox"
-                          className="form-check-input"
-                          id="exampleCheck1"
-                          onClick={() => handleCheck(task)}
-                        />
-                        <input
-                          className={
-                            task.isCompleted
-                              ? " form-check-lable border-0 text-decoration-line-through"
-                              : " form-check-lable border-0"
-                          }
-                          value={task.des}
-                          htmlFor="exampleCheck1"
-                          onChange={(e) => handleEdit(task, e)}
-                        />
-                      </div>
-                    </td>
-                    <td>
-                      <button
-                        type="button"
-                        class="btn btn-danger"
-                        onClick={() => handleDelete(task)}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                </>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
-      <ToastContainer />
-    </div>
+  return (
+    <>
+      <Navbar
+        taskes={taskes}
+        inputFilter={inputFilter}
+        setInputFilter={setInputFilter}
+      />
+      <div className="container mt-5">
+        <h1 className="text-center">Todo List Tasks</h1>
+
+        <div className="row">
+          <div className="col-10">
+            <input
+              className="form-control me-2"
+              type="search"
+              value={todoAdd}
+              placeholder="creat todo task"
+              onChange={(e) => setTodoAdd(e.target.value)}
+            />
+          </div>
+          <div className="col-2">
+            <button
+              className={
+                todoAdd !== ""
+                  ? "btn btn-outline-success"
+                  : "btn btn-outline-success disabled"
+              }
+              type="submit"
+              onClick={handleAdd}
+            >
+              Add
+            </button>
+          </div>
+        </div>
+        {/* table */}
+
+        {taskes && (
+          <table class="table table-borderless mt-3">
+            <tbody>
+              {inputFilter.map((task, index) => {
+                return (
+                  <>
+                    <tr
+                      draggable
+                      onDragStart={() => handleDragStart(index)}
+                      onDragEnter={() => handleDragEnter(index)}
+                      onDragEnd={handleDragEnd}
+                      onDragOver={(e) => e.preventDefault()}
+                    >
+                      {/* <th scope="row">{task.id}</th> */}
+                      <td>
+                        <div className="mb-3 form-check ">
+                          <input
+                            checked={task.isCompleted}
+                            type="checkbox"
+                            className="form-check-input"
+                            id="exampleCheck1"
+                            onClick={() => handleCheck(task)}
+                          />
+                          <input
+                            className={
+                              task.isCompleted
+                                ? " form-check-lable border-0 text-decoration-line-through"
+                                : " form-check-lable border-0"
+                            }
+                            value={task.des}
+                            htmlFor="exampleCheck1"
+                            onChange={(e) => handleEdit(task, e)}
+                          />
+                        </div>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          class="btn btn-danger"
+                          onClick={() => handleDelete(task)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  </>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+        <ToastContainer />
+      </div>
+    </>
   );
 }
 
